@@ -4,8 +4,10 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
+st.set_page_config(page_title="Cardio Disease Predictor", layout="centered")
+
 # ==============================
-# 1. Load Trained Model (.pkl)
+# 1. Load Trained Model
 # ==============================
 MODEL_PATH = "best_tuned_MLP.pkl"
 
@@ -18,14 +20,14 @@ def load_model():
 model = load_model()
 
 # ==============================
-# 2. Streamlit App UI
+# 2. UI Layout
 # ==============================
-st.title("📊 Cardiovascular Disease Prediction App")
-st.write("This interface predicts cardiovascular disease risk using statistical input data.")
+st.title("💖 Cardiovascular Disease Risk Predictor")
+st.markdown("### Enter patient data below and click **Predict** to estimate disease risk.")
 
-st.sidebar.header("🔧 Input Features")
+# Sidebar Inputs
+st.sidebar.header("🧍 Input Features")
 
-# Example numeric inputs — replace with your dataset's features
 age = st.sidebar.number_input("Age (years)", min_value=20, max_value=100, value=45)
 height = st.sidebar.number_input("Height (cm)", min_value=100, max_value=220, value=165)
 weight = st.sidebar.number_input("Weight (kg)", min_value=30, max_value=200, value=70)
@@ -37,7 +39,6 @@ smoke = st.sidebar.selectbox("Smoke", [0, 1], format_func=lambda x: "Yes" if x e
 alco = st.sidebar.selectbox("Alcohol", [0, 1], format_func=lambda x: "Yes" if x else "No")
 active = st.sidebar.selectbox("Physical Activity", [0, 1], format_func=lambda x: "Yes" if x else "No")
 
-# Combine features into DataFrame
 input_data = pd.DataFrame({
     'age': [age],
     'height': [height],
@@ -52,15 +53,14 @@ input_data = pd.DataFrame({
 })
 
 # ==============================
-# 3. Prediction Section
+# 3. Prediction
 # ==============================
 if st.button("🔍 Predict"):
     prediction = model.predict(input_data)
-    probability = None
     try:
         probability = model.predict_proba(input_data)[0][1]
     except:
-        pass
+        probability = None
 
     st.subheader("🩺 Prediction Result")
     if prediction[0] == 1:
@@ -68,25 +68,20 @@ if st.button("🔍 Predict"):
     else:
         st.success("✅ Low Risk of Cardiovascular Disease")
 
-    if probability is not None:
-        st.write(f"Prediction Confidence: **{probability*100:.2f}%**")
+    if probability:
+        st.write(f"Confidence: **{probability*100:.2f}%**")
 
-    # ==============================
-    # 4. Statistics Visualization
-    # ==============================
-    st.subheader("📈 Statistical Summary")
-    st.dataframe(input_data.describe())
-
-    st.subheader("📊 BMI Visualization")
-    bmi = weight / ((height/100)**2)
+    # BMI Visualization
+    st.subheader("📊 BMI Analysis")
+    bmi = weight / ((height / 100) ** 2)
     fig, ax = plt.subplots()
-    ax.bar(["BMI"], [bmi])
+    ax.bar(["BMI"], [bmi], color='skyblue')
     ax.axhline(25, color='r', linestyle='--', label='Overweight Threshold')
     ax.legend()
     st.pyplot(fig)
 
 # ==============================
-# 5. Upload Batch Data (Optional)
+# 4. Batch CSV Prediction
 # ==============================
 st.sidebar.write("---")
 uploaded_file = st.sidebar.file_uploader("📂 Upload CSV for Batch Prediction", type=["csv"])
